@@ -4,7 +4,6 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import kMeans
-import neural
 import solver 
 
 
@@ -26,14 +25,6 @@ class NeuralVisualizer:
         ls = ls.transpose()
         ls = [ls[len(ls)-i-1] for i in range(len(ls))]
         ax.imshow(ls, extent=(xlim[0], xlim[1], ylim[0], ylim[1]))
-
-
-    def drawPlots3D(ax, x, y, w, b, sets):
-        return [
-            ax.scatter(set.transpose()[x], set.transpose()[y], neural.Neural.calculateOutput(set.transpose(), np.array(w), b, neural.Neural.Activations.sigmoid))
-            for i, set
-            in enumerate(sets)
-        ]
 
 
     def showTopology(ax, x, y, set, w, b, linspace):
