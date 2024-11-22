@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgis/postgis
+    restart: always
+    user: postgres
+    env_file: ./.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data:rw
+      - ./db:/docker-entrypoint-initdb.d:ro
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - net
+  # db-admin:
+  #   image: dpage/pgadmin4:latest
+  #   env_file:
+  #     - ./.env
+  #   ports:
+  #     - 5050:80
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   user: root
+  #   networks:
+  #     - net
+
+# docker run --rm --volumes-from 3-db-1 -v $(pwd):/backup ubuntu tar cvf /backup/backup2.tar /var/lib/postgresql/data
+volumes:
+  pgdata:
+networks:
+  net:
+    driver: bridge
