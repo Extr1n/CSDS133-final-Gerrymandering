@@ -45,9 +45,7 @@
       apps = rec {
           db = {
             type = "app";
-            program = "${pkgs.writeShellScriptBin "start-compose.sh" ''
-              GDK_BACKEND=x11 ${pkgs.dbeaver-bin}/bin/dbeaver
-            ''}/bin/start-compose.sh";
+            program = "${pkgs.writeShellScriptBin "start-compose.sh" ''GDK_BACKEND=x11 ${pkgs.dbeaver-bin}/bin/dbeaver''}/bin/start-compose.sh";
           };
           default = db;
         # pgadmin = {
