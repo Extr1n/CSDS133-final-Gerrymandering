@@ -41,4 +41,7 @@ plt.plot(x_axis, norm.pdf(x_axis, loc=blue_mean, scale=blue_std), color='b', lin
 plt.axvline(x=actual_blue, color='b', linestyle='dashed', linewidth=1)
 plt.plot(x_axis, norm.pdf(x_axis, loc=red_mean, scale=red_std), color='r', linewidth=1)
 plt.axvline(x=actual_red, color='r', linestyle='dashed', linewidth=1)
+plt.title("State County Distributions")
+plt.xlabel("Number of Counties")
+plt.ylabel("Probability")
 plt.show()
