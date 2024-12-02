@@ -10,6 +10,8 @@ CREATE TABLE meta (
     size INT
 );
 
+CREATE INDEX meta_idx ON meta (runid, state);
+
 CREATE TABLE groups (
     groupid BIGSERIAL PRIMARY KEY,
     runid BIGINT NOT NULL,
@@ -20,11 +22,15 @@ CREATE TABLE groups (
     FOREIGN KEY (runid) REFERENCES meta(runid)
 );
 
+CREATE INDEX groups_idx ON groups (groupid, runid);
+
 CREATE TABLE result_group (
     resid BIGSERIAL PRIMARY KEY,
     layers INT[2][] NOT NULL,
     runid BIGINT NOT NULL
 );
+
+CREATE INDEX result_group_idx ON result_group (resid);
 
 CREATE TABLE results (
     runid BIGINT PRIMARY KEY,
@@ -35,6 +41,8 @@ CREATE TABLE results (
     FOREIGN KEY (runid) REFERENCES meta(runid),
     FOREIGN KEY (resid) REFERENCES result_group(resid)
 );
+
+CREATE INDEX results_idx ON results (runid, resid);
 
 CREATE FUNCTION cluster_group(v_previd BIGINT, v_size INT, v_seed DOUBLE PRECISION, v_type INT DEFAULT -1)
 RETURNS BIGINT AS $$
@@ -91,34 +99,32 @@ $$ LANGUAGE plpgsql;
 CREATE FUNCTION create_layers(layers INT[2][], prevrunid BIGINT)
 RETURNS BIGINT AS $$
 DECLARE
-    runids BIGINT[];
-    nextrunids BIGINT[];
     v_type INT;
-    num_layers INT;
-    v_runid BIGINT;
     v_resid BIGINT;
-    count INT;
 BEGIN
-    runids := array_append('{}', prevrunid);
+    CREATE TEMP TABLE temp_runids (runid BIGINT);
+    INSERT INTO temp_runids (runid) VALUES (prevrunid);
+
     v_type := array_length(layers, 1);
-    num_layers := v_type;
+
     FOR i IN 1..v_type
-    LOOP
-        nextrunids := '{}';
-        FOR count IN 1..layers[i][2]
-        LOOP
-            FOREACH v_runid IN ARRAY runids
-            LOOP
-                nextrunids := array_append(
-                    nextrunids,
-                    cluster_group(
-                        v_runid, layers[i][1], count::double precision/layers[i][2], v_type
-                    )
-                );
-            END LOOP;
-        END LOOP;
-        v_type := -1;
-        runids := nextrunids;
+	LOOP
+        CREATE TEMP TABLE temp_nextrunids (runid BIGINT);
+
+        WITH runid_groups AS (
+            SELECT runid FROM temp_runids
+        )
+        INSERT INTO temp_nextrunids (runid)
+        SELECT
+            cluster_group(runid_groups.runid, layers[i][1], count::double precision / layers[i][2], v_type)
+        FROM runid_groups
+        CROSS JOIN generate_series(1, layers[i][2]) AS count;
+
+        TRUNCATE TABLE temp_runids;
+        INSERT INTO temp_runids (runid)
+        SELECT runid FROM temp_nextrunids;
+
+        DROP TABLE temp_nextrunids;
     END LOOP;
 
     INSERT INTO result_group (layers, runid) VALUES (
@@ -128,14 +134,14 @@ BEGIN
 
     INSERT INTO results (runid, resid, dem, rep, total) (
         SELECT
-            runid,
+            groups.runid,
             v_resid,
             SUM(CASE WHEN dem > rep THEN 1 ELSE 0 END) AS dem,
             SUM(CASE WHEN rep > dem THEN 1 ELSE 0 END) AS rep,
             COUNT(total)
         FROM groups
-        WHERE groups.runid = ANY(runids)
-        GROUP BY runid
+        JOIN temp_runids ON temp_runids.runid = groups.runid
+        GROUP BY groups.runid
     );
 
     return v_resid;
