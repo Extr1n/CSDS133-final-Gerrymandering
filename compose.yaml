@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgis/postgis
+    image: postgis/postgis:17-3.5
     restart: always
     user: postgres
     env_file: ./.env
@@ -18,20 +18,7 @@ services:
       retries: 5
     networks:
       - net
-  # db-admin:
-  #   image: dpage/pgadmin4:latest
-  #   env_file:
-  #     - ./.env
-  #   ports:
-  #     - 5050:80
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   user: root
-  #   networks:
-  #     - net
 
-# docker run --rm --volumes-from 3-db-1 -v $(pwd):/backup ubuntu tar cvf /backup/backup2.tar /var/lib/postgresql/data
 volumes:
   pgdata:
 networks:
