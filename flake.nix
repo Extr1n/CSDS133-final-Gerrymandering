@@ -27,6 +27,7 @@
             (python3.withPackages (pythonPackages: with pythonPackages; [
               ipykernel
               pandas
+              geopandas
               scikit-learn
               pip
               numpy
@@ -37,6 +38,8 @@
               python-dotenv
               psycopg2
               psycopg
+              folium
+              mapclassify
             ]))
           ];
         };
