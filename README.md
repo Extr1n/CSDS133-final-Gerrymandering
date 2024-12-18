@@ -14,6 +14,7 @@ We attempt to simulate this via pseudo random groupings of polling neighborhoods
 - docker-compose
 - nix (optional)
 - python 3, jupyter
+- GDAL
 
 ### Dependencies
 
@@ -21,7 +22,7 @@ If using nix, simply activate the development shell provided with the `nix devel
 
 Python dependencies may be found within the dependencies section in the `flake.nix` file if manual installation is required.
 
-Without nix, GDAL, QGIS, and DBeaver will be helpful for looking at data as simulations are performed or just to interact with data more directly.
+Without nix, QGIS and DBeaver will be helpful for looking at data as simulations are performed or just to interact with data more directly.
 
 With nix, GDAL and QGIS are provided automatically with the development shell, and DBeaver is provided with the command `nix run .#db`
 
